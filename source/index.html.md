@@ -4,7 +4,6 @@ title: API Reference
 language_tabs:
   - http
   - shell
-  - javascript
   - erlang
 
 toc_footers:
