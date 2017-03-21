@@ -2,10 +2,10 @@
 title: API Reference
 
 language_tabs:
+  - http
   - shell
-  - ruby
-  - python
   - javascript
+  - erlang
 
 toc_footers:
   - <a href='#'>Sign Up for a Developer Key</a>
@@ -13,6 +13,8 @@ toc_footers:
 
 includes:
   - errors
+  - dogs
+  - sms
 
 search: true
 ---
@@ -25,9 +27,51 @@ We have language bindings in Shell, Ruby, and Python! You can view code examples
 
 This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
 
+# James' Heading 1
+
+## Heading 2.0 
+
+### Heading 3.0
+
+This is information `about` somthing I want to do .
+
+### Heading 3.1
+
+More info here
+
+## Heading 2.1
+
+Bye there
+
 # Authentication
 
 > To authorize, use this code:
+
+```erlang
+%% ===================================================================
+%% Public
+%% ===================================================================
+
+
+%% @doc Equivalent to `get(Key, undefined)'.
+-spec get(term()) -> 
+    Value :: term().
+
+get(Key) ->
+    get(Key, undefined).
+
+
+%% @doc Gets an config value.
+-spec get(term(), term()) -> 
+    Value :: term().
+
+get(Key, Default) -> 
+    case ets:lookup(?MODULE, Key) of
+        [] -> Default;
+        [{_, Value}] -> Value
+    end.
+
+```
 
 ```ruby
 require 'kittn'

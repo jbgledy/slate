@@ -408,6 +408,7 @@ html, body {
   table {
     margin-bottom: 1em;
     overflow: auto;
+    
     th,td {
       text-align: left;
       vertical-align: top;
@@ -423,7 +424,7 @@ html, body {
     td {
       padding: 10px;
     }
-
+        
     tr:last-child {
       border-bottom: 1px solid #ccc;
     }
@@ -625,3 +626,92 @@ html, body {
 .highlight, .highlight .w {
   background-color: $code-bg;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////
+// API ENDPOINT
+////////////////////////////////////////////////////////////////////////////////
+.api-endpoint {
+  margin-right: $examples-width;
+  padding: 0 $main-padding;
+  // @include box-sizing(border-box);
+  display: block;
+  @extend %left-col;
+
+  .endpoint-data {
+    background-color: $code-bg;
+    color: #fff;
+    border-radius: 5px;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #404040;
+    // @include text-shadow(0px 1px 2px rgba(0,0,0,0.4));
+    margin: 15px 0;
+    height: 38px;
+
+    i {
+      display: inline-block;
+      margin: 5px;
+      padding: 4px 12px;
+      line-height: 20px;
+    }
+
+    h6 {
+      display: inline-block;
+      margin: 0;
+      @extend %code-font;
+      text-transform: lowercase;
+      // font-weight: 400;
+      font-weight: bold;
+    }
+  }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// LABEL
+////////////////////////////////////////////////////////////////////////////////
+.label {
+  border-radius: 2px;
+  text-transform: uppercase;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.label-get {
+  background: #008000;
+  font-weight: bold;
+}
+
+.label-put {
+  background: #d69915;
+  font-weight: bold;
+}
+
+.label-post {
+  background: #4e92d7;
+  font-weight: bold;
+}
+
+.label-delete {
+  background: #ca4949;
+  font-weight: bold;
+
+}
+
+.label-info {
+  background: #efefef;
+  color: #992;
+  float: right;
+  font-weight: 700;
+  font-size: 70%;
+  padding: 2px 4px;
+  margin-left: 5px;
+}
+
+.prettyprint {
+  white-space: nowrap;
+}
+
+
+
