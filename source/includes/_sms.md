@@ -18,9 +18,9 @@ Sending and querying SMS Messages.
 
 | Resource | <b>POST</b><br><i>Create</i> | <b>GET</b><br><i>Read</i> | <b>PUT</b><br><i>Update</i> | <b>DELETE</b><br><i>Delete</i> |
 |----------|--------|------|--------|--------|
-| {messages}    | NA - Use [Send SMS](#send-sms-message) | We do not really create a message so use logs to get details | Error | Error |
-| /numbers | - Create if null<br>- Update otherwise | List all `tn` data | Error | Error |
-| /numbers/{`tn`} | Error | List data for `tn` | - If `tn` exists, update it.<br> - If not - Error | Delete a `tn` |
+| {messages}    | NA - Use [Send SMS](#sms-send-message) | We do not really create a message so use logs to get details | Error | Error |
+| /numbers | - Create if null<br>- Update otherwise | List all `tn` data <br>  or filtered 'tn' data| Error | Error |
+| /numbers/{`tn`} | Error | List data for `tn`| - If `tn` exists, update it.<br> - If not - Error | Delete a `tn` |
 | /logs | Error | List Sdr details with search and sort features | Error | Error |
 | /products | Error <br> Managed by the system (Armand)| List Sdr details with search and sort features | Error | Error |
 
@@ -34,7 +34,7 @@ To send an SMS, use [Send SMS](#send-sms-message)
  <br>Link to [James](#james)
 
 
-## Send Messages
+## <a name="sms-send-message"></a>Send Message ##
 
 <div class="api-endpoint">
 	<div class="endpoint-data">
@@ -49,7 +49,7 @@ Content-Type: application/json
 
 {
     "text":"Test 3 for 2 numbers :) ",
-    "from": "12149979912",
+    "from": "12019051454",
     "to": [ "15022692525", "16788523301" ],
     "referenceId" : "myRefId",
     "_log": {
@@ -65,7 +65,7 @@ curl -X POST https://api.sipstorm.com/sms/v1/send \
     -H "Content-Type: application/json" \
     -d '{
     "text":"Test 3 for 2 numbers :) ",
-    "from": "12149979912",
+    "from": "12019051454",
     "to": [ "15022692525", "16788523301"],
     "referenceId" : "myRefId"
 }'
@@ -77,10 +77,10 @@ curl -X POST https://api.sipstorm.com/sms/v1/send \
 {
   "status": 200,
   "statusCode": "Queued",
-  "message": "The messages have been queued to send.",
+  "statusMessage": "The messages have been queued to send.",
   "requestBody": {
     "text": "Test 3 for 2 numbers :) ",
-    "from": "12149979912",
+    "from": "12019051454",
     "to": [ "15022692525", "16788523301"],
     "referenceId" : "myRefId"
   }
@@ -93,17 +93,32 @@ curl -X POST https://api.sipstorm.com/sms/v1/send \
 {
   "status": 400,
   "statusCode": "MissingFromNumber",
-  "message": "The required `from` telephone number was not provided. You MUST provide a valid from TN.",
-  "moreInfo": "http://api.sipstorm.com/sms/v1/sms-errors",
+  "statusMessage": "The required `from` telephone number was not provided. You MUST provide a valid from TN.",
+  "statusUri": "http://api.sipstorm.com/sms/v1/sms-errors",
   "requestBody": {
     "text": "Test 3 for 2 numbers :) ",
-    "from": "12149979912",
+    "from": "12019051454",
     "to": [ "15022692525", "16788523301"],
     "referenceId" : "myRefId"
   }  
 }
 ```
 
+```json
+{ 
+"status": 400, 
+"statusCode": "InvalidToField" , 
+"statusMessage": "'to' parameter is invalid" , 
+"statusUri": "http://www.google.com" , 
+"requestBody": {
+  "text":"hello world",
+  "from": "12019051454",
+  "to":  "16788523301",
+  "referenceId" : "mar22_3"
+}
+```
+
+}
 ### SMS Messages - Attributes ###
 SMS Attributes go here.
 
@@ -124,12 +139,14 @@ Sending an SMS can create errors.
 
 | Status    | Status Code | Message | Notes |
 |-----------|------|-------------|------|
-|200         | Queued | The messages have been queued to send. | Messages get queued to make sure only 1 text per second is sent by any given originating (`to`) number.|
+|200         | Queued | The message(s) have been queued to send. | Messages get queued to make sure only 1 text per second is sent by any given originating (`from`) number.|
+|400         | InvalidJSON |The JSON request is not valid. | See example.|
 |400         | MissingFromNumber |The required `from` telephone number was not provided. You MUST provide a valid from TN. | |
 |400         | InvalidToField |The `to` field is either not an array or has bad data in it.	Make sure it is an array of telephone numbers. | See example.|
 |404         | InvalidFromNumber |The `from` telephone number has not been provisioned so may not send texts.  Please make sure the number is provisioned via the SMS number provisioning system.| This would usually be done at the time the account is set up by Perry's services. |
-|500         | Redis Error | Redis server had an error {Plus the Error}.| Example: redis communication failure connection refused. |
-|500         | ElasticSearch Error | ElasticSearch had an error {Plus the Error}.| |
+|500         | RedisFailure | The Redis server had an error:{Plus the Error}.| Example: redis communication failure connection refused. |
+|500         | ElasticSearchFailure | The ElasticSearch server had an error:{Plus the Error}.| |
+|500         | NginxTimerFailure | NGINX failed to create a timer:{Plus the Error}.| |
 
 
 
@@ -211,7 +228,7 @@ curl -X GET https://api.sipstorm.com/sms/v1/messages \
 {
   "status": 404,
   "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
+  "statusMessage": "Was not able to find a record for the criteria.",
   "_data" : []
 }
 ```
@@ -270,7 +287,7 @@ POST /sms/v1/numbers HTTP/1.1
 Content-Type: application/json
 
 {
-    "number": "12149979912",
+    "number": "12019051454",
     "product" : "textland",
     "_log": {
         "app": "textland",
@@ -283,16 +300,14 @@ Content-Type: application/json
 > Example OK Response
 
 ```json
-{
-  "status": 200,
-  "_data": [
-      {
-        "stuff": "here"
-      },
-      {
-        "stuff": "here"
-      }
-  ]
+{ 
+"status": 200, 
+"statusCode": "NumberProvisioned" , 
+"statusMessage": "The number has been provisioned successfully." , 
+"requestBody": 
+  {
+  "number":"12019051454",
+  "product":"textland"
 }
 ```
 
@@ -301,9 +316,12 @@ Content-Type: application/json
 ```json
 {
   "status": 404,
-  "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
-  "_data" : []
+  "statusCode": "ProductInvalid",
+  "statusMessage": "The specified product is not configured",
+  "requestBody": {
+    "from": "12019051454",
+    "product": "textland"
+  }
 }
 ```
 
@@ -314,6 +332,19 @@ Content-Type: application/json
 |`_log.app`         | string |The app you are sending from.<br>Example: `textland` <i class="label label-info">recommended</i>|
 |`_log.serverId`         | string |The ID of the server you are sending from.<br>Example: `docker-11445fgh` <i class="label label-info">recommended</i>|
 |`_log.gmsId`         | string |The Global Matched Session Id that can be used to match this tranaction with other transactions from other services <i class="label label-info">recommended</i>|
+
+
+Creating Numbers can create errors.
+
+| Status    | Status Code | Message | Notes |
+|-----------|------|-------------|------|
+|200         | NumberProvisioned | The number has been provisioned successfully. | This is an OK request.|
+|400         | InvalidJSON |The JSON request is not valid. | See example.|
+|400         | MissingNumber |The required `number` telephone number was not provided. You MUST provide a valid number TN.| |
+|400         | ProductMissing |The required `product` field is missing. You MUST provide a valid product.| |
+|404         | ProductInvalid |The specified product is not configured.| |
+|500         | ElasticSearchFailure | The ElasticSearch server had an error:{Plus the Error}.| |
+
 
 
 
@@ -336,7 +367,7 @@ Content-Type: application/json
 
 
 ```http
-POST /sms/v1/numbers/{tn} HTTP/1.1
+PUT /sms/v1/numbers/12019051454 HTTP/1.1
 Content-Type: application/json
 
 {
@@ -354,14 +385,11 @@ Content-Type: application/json
 ```json
 {
   "status": 200,
-  "_data": [
-      {
-        "stuff": "here"
-      },
-      {
-        "stuff": "here"
-      }
-  ]
+  "statusCode": "NumberUpdated",
+  "statusMessage": "The number has been updated successfully.",
+  "requestBody": {
+    "product": "textland"
+  }
 }
 ```
 
@@ -370,9 +398,11 @@ Content-Type: application/json
 ```json
 {
   "status": 404,
-  "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
-  "_data" : []
+  "statusCode": "ProductInvalid",
+  "statusMessage": "The specified product is not configured.",
+  "requestBody": {
+    "product": "nottextland"
+  }
 }
 ```
 
@@ -384,6 +414,17 @@ Content-Type: application/json
 |`_log.gmsId`         | string |The Global Matched Session Id that can be used to match this tranaction with other transactions from other services <i class="label label-info">recommended</i>|
 
 
+
+Updating Numbers can create errors.
+
+| Status    | Status Code | Message | Notes |
+|-----------|------|-------------|------|
+|200         | NumberProvisioned | The number has been provisioned successfully. | This is an OK request.|
+|400         | InvalidJSON |The JSON request is not valid. | See example.|
+|400         | MissingNumber |The required `number` telephone number was not provided. You MUST provide a valid number TN.| |
+|400         | ProductMissing |The required `product` field is missing. You MUST provide a valid product.| |
+|404         | ProductInvalid |The specified product is not configured.| |
+|500         | ElasticSearchFailure | The ElasticSearch server had an error:{Plus the Error}.| |
 
 
 
@@ -430,13 +471,27 @@ Content-Type: application/json
 ```json
 {
   "status": 200,
-  "_data": [
-      {
-        "stuff": "here"
-      },
-      {
-        "stuff": "here"
-      }
+  "statusCode": "NumberQuery",
+  "statusMessage": "The query has been run successfully.",
+  "results": [
+    {
+      "number": "12019051458",
+      "product": "textland",
+      "url": "armwaredev.dyndns.org:8080/app/SMS?requestFrom=IC",
+      "apiKey": "96849ca7d120460e8ded96afcd13faedYmxvdw65f860ce0d7046d8a8056f2e83f2f904"
+    },
+    {
+      "number": "12019051454",
+      "product": "textland",
+      "url": "armwaredev.dyndns.org:8080/app/SMS?requestFrom=IC",
+      "apiKey": "96849ca7d120460e8ded96afcd13faedYmxvdw65f860ce0d7046d8a8056f2e83f2f904"
+    },
+    {
+      "number": "12019051456",
+      "product": "textland",
+      "url": "armwaredev.dyndns.org:8080/app/SMS?requestFrom=IC",
+      "apiKey": "96849ca7d120460e8ded96afcd13faedYmxvdw65f860ce0d7046d8a8056f2e83f2f904"
+    }
   ]
 }
 ```
@@ -445,10 +500,10 @@ Content-Type: application/json
 
 ```json
 {
-  "status": 404,
-  "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
-  "_data" : []
+  "status": 200,
+  "statusCode": "NumberQuery",
+  "statusMessage": "The query has been run successfully.",
+  "results": {}
 }
 ```
 
@@ -465,13 +520,13 @@ Content-Type: application/json
 
 
 ### Response Codes ###
-Sending an SMS can create errors.
+Getting Numbers can create errors.
 
 | Status    | Status Code | Message | Notes |
 |-----------|------|-------------|------|
-|200         |  | | This is an OK request.  See "_data" for response.|
+|200         | NumberQuery | The query has been run successfully.| This is an OK request.  See "result" for response.|
 |400         | CrapForData |You entered data that was not valid.| |
-|500         | ServerError | Any server errors. | |
+|500         | ElasticSearchFailure | The ElasticSearch server had an error:{Plus the Error}.| |
 
 
 
@@ -500,28 +555,24 @@ Sending an SMS can create errors.
 
 
 ```http
-DELETE /sms/v1/numbers?product=textland HTTP/1.1
+DELETE /sms/v1/numbers/18135791001 HTTP/1.1
 Content-Type: application/json
 ```
 
 ```http
-DELETE /sms/v1/numbers/18135791001 HTTP/1.1
+** NOT CURRENTLY IMPLEMENTED **
+DELETE /sms/v1/numbers?product=textland HTTP/1.1
 Content-Type: application/json
 ```
+
 
 > Example OK Response
 
 ```json
 {
   "status": 200,
-  "_data": [
-      {
-        "stuff": "here"
-      },
-      {
-        "stuff": "here"
-      }
-  ]
+  "statusCode": "NumberDeleted",
+  "statusMessage": "The number has been deleted successfully."
 }
 ```
 
@@ -530,9 +581,8 @@ Content-Type: application/json
 ```json
 {
   "status": 404,
-  "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
-  "_data" : []
+  "statusCode": "NumberNotDeleted",
+  "statusMessage": "The number was not found therefore not deleted."
 }
 ```
 
@@ -546,32 +596,20 @@ Content-Type: application/json
 
 
 ### Response Codes ###
-Sending an SMS can create errors.
+Deleting Numbers can create errors.
 
 | Status    | Status Code | Message | Notes |
 |-----------|------|-------------|------|
-|200         |  | | This is an OK request.  See "_data" for response.|
-|400         | CrapForData |You entered data that was not valid.| |
-|500         | ServerError | Any server errors. | |
-
-
-
-
-
-
-
-
-
-
-
-
+|200         | NumberDeleted |The number has been deleted successfully.| |
+|404         | NumberNotDeleted |The number was not found therefore not deleted.| |
+|500         | ElasticSearchFailure | The ElasticSearch server had an error:{Plus the Error}.| |
 
 
 
 
 
 [//]: # (===================================================================)
-[//]: # ( Number GET LIST  )
+[//]: # ( Products GET LIST  )
 [//]: # (===================================================================)
 
 
@@ -613,7 +651,7 @@ Content-Type: application/json
 {
   "status": 404,
   "statusCode": "NotFound",
-  "message": "Was not able to find a record for the criteria.",
+  "statusMessage": "Was not able to find a record for the criteria.",
   "_data" : []
 }
 ```
