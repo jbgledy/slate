@@ -16,6 +16,9 @@ Sending and querying SMS Messages.
 
 ### Resource CRUD ###
 
+James put this in to test github features 
+
+
 | Resource | <b>POST</b><br><i>Create</i> | <b>GET</b><br><i>Read</i> | <b>PUT</b><br><i>Update</i> | <b>DELETE</b><br><i>Delete</i> |
 |----------|--------|------|--------|--------|
 | {messages}    | NA - Use [Send SMS](#sms-send-message) | We do not really create a message so use logs to get details | Error | Error |
