@@ -21,7 +21,7 @@ Sending and querying SMS Messages.
 | {messages}    | NA - Use [Send SMS](#sms-send-message) | We do not really create a message so use logs to get details | Error | Error |
 | /numbers | - Create if null<br>- Update otherwise | List all `tn` data <br>  or filtered 'tn' data| Error | Error |
 | /numbers/{`tn`} | Error | List data for `tn`| - If `tn` exists, update it.<br> - If not - Error | Delete a `tn` |
-| /logs | Error | List Sdr details with search and sort features | Error | Error |
+| /sdrs  | Error | List Sdr details with search and sort features | Error | Error |
 | /products | Error <br> Managed by the system (Armand)| List Sdr details with search and sort features | Error | Error |
 
 
